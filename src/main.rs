@@ -1,3 +1,5 @@
+use std::{thread::sleep, time::Duration};
+
 use configs::Configs;
 use get_desired_mod::get_desired_mod;
 use list_mods::list_mods;
@@ -20,5 +22,6 @@ fn main() {
     }
     let desired_mod = get_desired_mod(&all_mods);
     replace_mod(&desired_mod, &configs);
-    println!("Using {} now!", desired_mod.formatted_name())
+    println!("Using {} now!", desired_mod.formatted_name());
+    sleep(Duration::from_secs(4));
 }
