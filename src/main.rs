@@ -17,7 +17,7 @@ fn main() {
     let configs = Configs::new();
     let all_mods = list_mods(&configs.mods_group_path);
     if all_mods.is_empty() {
-        println!("You have no mods in this folder right now. Try downloading new mods or bringing your existing mods to this folder.");
+        println!("You have no mods in your folder right now. Try downloading new mods or bringing your existing mods to this folder.");
         return;
     }
     let desired_mod = get_desired_mod(&all_mods);

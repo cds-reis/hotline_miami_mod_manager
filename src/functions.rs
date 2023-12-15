@@ -1,16 +1,20 @@
 use std::{
     fs::{read_dir, DirEntry},
-    io,
     path::Path,
 };
 
+use inquire::Text;
+
 pub fn get_user_input(prompt: &str) -> String {
-    println!("{}", prompt);
-    let mut input = String::new();
-    io::stdin()
-        .read_line(&mut input)
-        .expect("Unable to read your input.");
-    input.trim().to_owned()
+    // println!("{}", prompt);
+    // let mut input = String::new();
+    // io::stdin()
+    //     .read_line(&mut input)
+    //     .expect("Unable to read your input.");
+    // input.trim().to_owned()
+    Text::new(&format!("{prompt}\n"))
+        .prompt()
+        .expect("Unable to read your input")
 }
 
 pub fn get_dirs(path: &Path) -> Vec<DirEntry> {

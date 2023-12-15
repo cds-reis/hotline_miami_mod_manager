@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     fs::{self, metadata},
     path::{Path, PathBuf},
 };
@@ -12,19 +13,22 @@ pub struct Configs {
     pub mods_group_path: PathBuf,
 }
 
-const CONFIGS_FILE_NAME: &str = "configs.txt";
+const CONFIGS_FILE_NAME: &str = "configs.conf";
 const GAME_PATH_PROMPT: &str =
     r"What is your HM2 path? If you are in doubt, check at C:\SteamLibrary\steamapps\common";
 const MODS_PATH_PROMPT: &str = r"What is your HM2 mods folder path?";
 const GROUP_MODS_PATH_PROMPT: &str = r"What is your HM2 folder where you keep your mods?";
+const GAME_PATH_KEY: &str = "game_path";
+const MODS_PATH_KEY: &str = "mods_path";
+const GROUP_MODS_PATH_KEY: &str = "group_mods_path";
 
 impl Configs {
     pub fn new() -> Configs {
-        let (game_path, mods_path, mods_group_path) = read_contents_from_file();
+        let paths = read_contents_from_file();
         Configs {
-            game_path,
-            mods_path,
-            mods_group_path,
+            game_path: paths[GAME_PATH_KEY].to_owned(),
+            mods_path: paths[MODS_PATH_KEY].to_owned(),
+            mods_group_path: paths[GROUP_MODS_PATH_KEY].to_owned(),
         }
     }
 }
@@ -35,36 +39,36 @@ impl Default for Configs {
     }
 }
 
-fn format_new_file_contents(game_path: &Path, mods_path: &Path, group_mods_path: &Path) -> String {
-    let game_path_str = game_path.display().to_string();
-    let mods_path_str = mods_path.display().to_string();
-    let group_mods_path_sr = group_mods_path.display().to_string();
-    format!(
-        "game_path: {}\nmods_path: {}\ngroup_mods_path: {}",
-        game_path_str, mods_path_str, group_mods_path_sr
-    )
+fn format_new_file_contents(paths: &[(&str, PathBuf)]) -> String {
+    paths
+        .iter()
+        .map(|path| (path.0, path.1.display().to_string()))
+        .map(|path| format!("{}: {}\n", path.0, path.1))
+        .collect()
 }
 
-fn read_contents_from_file() -> (PathBuf, PathBuf, PathBuf) {
+fn read_contents_from_file() -> HashMap<String, PathBuf> {
     let contents = fs::read_to_string(CONFIGS_FILE_NAME).unwrap_or_else(|_| create_configs_file());
-    let paths = contents
+    contents
         .lines()
         .map(|s| s.split_once(':'))
         .map(|s| s.expect("Invalid config data."))
-        .map(|s| s.1)
-        .map(str::trim)
-        .map(PathBuf::from)
-        .collect::<Vec<PathBuf>>();
-    (paths[0].clone(), paths[1].clone(), paths[2].clone())
+        .map(|s| (String::from(s.0), s.1))
+        .map(|s| (s.0, s.1.trim()))
+        .map(|s| (s.0, PathBuf::from(s.1)))
+        .collect::<HashMap<String, PathBuf>>()
 }
 
 fn create_configs_file() -> String {
-    let game_path = get_path(GAME_PATH_PROMPT, "game's");
-    let mods_path = get_path(MODS_PATH_PROMPT, "mods'");
-    let group_mods_path = get_path(GROUP_MODS_PATH_PROMPT, "group mods'");
+    let game_path = (GAME_PATH_KEY, get_path(GAME_PATH_PROMPT, "game's"));
+    let mods_path = (MODS_PATH_KEY, get_path(MODS_PATH_PROMPT, "mods'"));
+    let group_mods_path = (
+        GROUP_MODS_PATH_KEY,
+        get_path(GROUP_MODS_PATH_PROMPT, "group mods'"),
+    );
     drop(fs::write(
         CONFIGS_FILE_NAME,
-        format_new_file_contents(&game_path, &mods_path, &group_mods_path),
+        format_new_file_contents(&[game_path, mods_path, group_mods_path]),
     ));
     fs::read_to_string(CONFIGS_FILE_NAME).expect("Unable to read configuration file")
 }
