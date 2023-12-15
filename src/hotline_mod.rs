@@ -44,7 +44,7 @@ fn get_music(mod_path: &Path) -> Option<PathBuf> {
         .read_dir()
         .map(read_dir_to_path)
         .unwrap_or_default()
-        .get(0)
+        .first()
         .filter(|path| is_valid_music_file(path))
         .map(ToOwned::to_owned)
 }

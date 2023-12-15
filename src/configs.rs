@@ -23,12 +23,12 @@ const MODS_PATH_KEY: &str = "mods_path";
 const GROUP_MODS_PATH_KEY: &str = "group_mods_path";
 
 impl Configs {
-    pub fn new() -> Configs {
+    pub fn new() -> Self {
         let paths = read_contents_from_file();
         Configs {
-            game_path: paths[GAME_PATH_KEY].to_owned(),
-            mods_path: paths[MODS_PATH_KEY].to_owned(),
-            mods_group_path: paths[GROUP_MODS_PATH_KEY].to_owned(),
+            game_path: paths[GAME_PATH_KEY].clone(),
+            mods_path: paths[MODS_PATH_KEY].clone(),
+            mods_group_path: paths[GROUP_MODS_PATH_KEY].clone(),
         }
     }
 }
