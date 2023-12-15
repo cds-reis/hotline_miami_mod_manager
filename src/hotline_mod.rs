@@ -1,5 +1,6 @@
 use std::{
     ffi::OsStr,
+    fmt,
     fs::ReadDir,
     path::{Path, PathBuf},
 };
@@ -13,6 +14,13 @@ pub struct HotlineMod {
     pub name: String,
     pub music: Option<PathBuf>,
     pub mods: Vec<PathBuf>,
+}
+
+impl fmt::Display for HotlineMod {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let name = self.formatted_name();
+        write!(f, "{name}")
+    }
 }
 
 impl HotlineMod {
