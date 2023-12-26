@@ -1,8 +1,4 @@
-use std::{
-    ffi::OsStr,
-    fs::read_dir,
-    path::Path,
-};
+use std::{ffi::OsStr, fs::read_dir, path::Path};
 
 use crate::{functions::capitalize, hotline_mod::HotlineMod};
 

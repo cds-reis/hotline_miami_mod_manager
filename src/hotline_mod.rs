@@ -11,15 +11,14 @@ const VALID_MUSIC_EXTENSION: &str = "wad";
 
 #[derive(Debug)]
 pub struct HotlineMod {
-    pub name: String,
+    pub name: HotlineModName,
     pub music: Option<PathBuf>,
     pub mods: Vec<PathBuf>,
 }
 
 impl fmt::Display for HotlineMod {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let name = self.formatted_name();
-        write!(f, "{name}")
+        write!(f, "{}", self.name)
     }
 }
 
@@ -30,21 +29,37 @@ impl HotlineMod {
         let mods = get_mods(mod_path);
         Some(HotlineMod { name, music, mods })
     }
+}
 
-    pub fn formatted_name(&self) -> String {
-        self.name
+#[derive(Debug)]
+pub struct HotlineModName(pub String);
+
+impl HotlineModName {
+    pub fn new(directory_name: &str) -> Self {
+        let name = directory_name
             .split('_')
             .map(capitalize)
             .collect::<Vec<String>>()
-            .join(" ")
+            .join(" ");
+        HotlineModName(name)
+    }
+
+    pub fn directory_name(&self) -> String {
+        self.0.to_lowercase().replace(' ', "_")
     }
 }
 
-fn get_name(mod_path: &Path) -> Option<String> {
+impl fmt::Display for HotlineModName {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+fn get_name(mod_path: &Path) -> Option<HotlineModName> {
     mod_path
         .file_name()
         .and_then(OsStr::to_str)
-        .map(ToOwned::to_owned)
+        .map(HotlineModName::new)
 }
 fn get_music(mod_path: &Path) -> Option<PathBuf> {
     mod_path

@@ -21,7 +21,7 @@ pub fn get_dirs(path: &Path) -> Vec<DirEntry> {
     read_dir(path)
         .expect("Error reading directory.")
         .filter_map(Result::ok)
-        .collect::<Vec<DirEntry>>()
+        .collect()
 }
 
 pub fn capitalize(value: &str) -> String {
@@ -32,4 +32,8 @@ pub fn capitalize(value: &str) -> String {
     }
 
     result
+}
+
+pub fn work_in_progress() {
+    println!("🏗 🏗  Work in progress 🏗 🏗");
 }

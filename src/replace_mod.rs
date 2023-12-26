@@ -20,7 +20,7 @@ pub fn replace_mod(hm_mod: &HotlineMod, config: &Configs) {
 }
 
 fn replace_mods(hm_mod: &HotlineMod, config: &Configs) {
-    let game_mods_path = &config.mods_path;
+    let game_mods_path = &config.paths_config.mods_path;
     remove_mods_in_mods_dir(game_mods_path);
     if hm_mod.mods.is_empty() {
         return;
@@ -47,7 +47,7 @@ fn remove_mods_in_mods_dir(mods_path: &Path) {
 }
 
 fn replace_music(music_path: &Path, config: &Configs) {
-    let game_music_path = &config.game_path.join(MUSIC_FILE_NAME);
+    let game_music_path = &config.paths_config.game_path.join(MUSIC_FILE_NAME);
     let copy_options = default_copy_options();
     let message = format_progress_bar_music_message(music_path);
     let progress_bar = ProgressBar::new(0).with_message(message);
