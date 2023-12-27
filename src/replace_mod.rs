@@ -8,13 +8,17 @@ use fs_extra::{
     copy_items_with_progress,
     file::{copy_with_progress, CopyOptions, TransitProcess},
 };
-use indicatif::ProgressBar;
+use indicatif::{HumanBytes, ProgressBar, ProgressStyle};
 
-use crate::{configs::Configs, hotline_mod::HotlineMod, list_mods::format_mod_name};
+use crate::{
+    configs::Configs, hotline_mod::HotlineMod, list_mods::format_mod_name,
+    replace_default_music::replace_default_music,
+};
 
 pub fn replace_mod(hm_mod: &HotlineMod, config: &Configs) {
-    if let Some(music_path) = &hm_mod.music {
-        replace_music(music_path, config);
+    match &hm_mod.music {
+        Some(music_path) => replace_music(music_path, config),
+        None => replace_default_music(config),
     }
     replace_mods(hm_mod, config);
 }
@@ -28,8 +32,11 @@ fn replace_mods(hm_mod: &HotlineMod, config: &Configs) {
     let music = hm_mod.music.as_deref();
     let progress_bar = ProgressBar::new(0).with_message(format_progress_bar_mods_message(music));
     let handler = |transit_process: fs_extra::TransitProcess| {
-        progress_bar.set_length(transit_process.total_bytes);
-        progress_bar.set_position(transit_process.copied_bytes);
+        update_progress_bar(
+            &progress_bar,
+            transit_process.total_bytes,
+            transit_process.copied_bytes,
+        );
         TransitProcessResult::ContinueOrAbort
     };
     copy_items_with_progress(
@@ -46,14 +53,19 @@ fn remove_mods_in_mods_dir(mods_path: &Path) {
     create_dir(mods_path).expect("Error removing mods in the mods directory.");
 }
 
-fn replace_music(music_path: &Path, config: &Configs) {
+pub fn replace_music(music_path: &Path, config: &Configs) {
     let game_music_path = &config.paths_config.game_path.join(MUSIC_FILE_NAME);
     let copy_options = default_copy_options();
     let message = format_progress_bar_music_message(music_path);
-    let progress_bar = ProgressBar::new(0).with_message(message);
+    let progress_bar = ProgressBar::new(0)
+        .with_message(message)
+        .with_style(ProgressStyle::default_bar().template("{msg}").unwrap());
     let handler = |transit_process: TransitProcess| {
-        progress_bar.set_length(transit_process.total_bytes);
-        progress_bar.set_position(transit_process.copied_bytes);
+        update_progress_bar(
+            &progress_bar,
+            transit_process.total_bytes,
+            transit_process.copied_bytes,
+        );
     };
     let _ = copy_with_progress(music_path, game_music_path, &copy_options, handler)
         .expect("Could not copy the music file successfully.");
@@ -80,6 +92,13 @@ fn default_copy_options() -> CopyOptions {
     let mut copy_options = CopyOptions::new();
     copy_options.overwrite = true;
     copy_options
+}
+
+fn update_progress_bar(progress_bar: &ProgressBar, total_bytes: u64, copied_bytes: u64) {
+    let total = HumanBytes(total_bytes).to_string();
+    let copied = HumanBytes(copied_bytes).to_string();
+
+    progress_bar.set_message(format!("Copied: {} - Total: {}", copied, total));
 }
 
 const MUSIC_FILE_NAME: &str = "hlm2_music_desktop.wad";
