@@ -27,7 +27,7 @@ fn main() {
     match action {
         Action::ChangeMod => change_mod(configs),
         Action::ChangeConfigurationPath => change_configuration_path(&configs),
-        Action::ClearConfiguration => clear_configuration(&configs),
+        Action::ClearConfiguration => clear_configuration(),
         Action::Exit => exit(),
     }
 

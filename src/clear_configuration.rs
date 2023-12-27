@@ -1,5 +1,12 @@
-use crate::{configs::Configs, functions::work_in_progress};
+use std::{fs, thread::sleep, time::Duration};
 
-pub fn clear_configuration(_configs: &Configs) {
-    work_in_progress();
+use crate::configs::CONFIGS_FILE_NAME;
+
+pub fn clear_configuration() {
+    if let Err(error) = fs::remove_file(CONFIGS_FILE_NAME) {
+        println!("Error clearing the configs. {error}");
+    } else {
+        println!("Successfully cleared your configuration!");
+        sleep(Duration::from_secs(4));
+    };
 }
