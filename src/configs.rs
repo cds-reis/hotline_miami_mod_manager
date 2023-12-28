@@ -2,6 +2,9 @@ use std::{
     collections::HashMap,
     fs::{self, metadata},
     path::{Path, PathBuf},
+    process::exit,
+    thread::sleep,
+    time::Duration,
 };
 
 use crate::{functions::get_user_input, hotline_mod::HotlineModName};
@@ -119,7 +122,11 @@ pub fn get_path(prompt: &str, path_name: &str) -> PathBuf {
 }
 
 fn panic_in_invalid_path(path: &Path, path_name: &str) {
-    metadata(path).unwrap_or_else(|_| panic!("Could not find your {} path.", path_name));
+    if metadata(path).is_err() {
+        println!("Could not find your {} path.", path_name);
+        sleep(Duration::from_secs(4));
+        exit(0);
+    };
 }
 
 pub const CONFIGS_FILE_NAME: &str = "hm_mod_manager_configs.conf";

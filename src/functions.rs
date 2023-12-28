@@ -1,27 +1,25 @@
 use std::{
     fs::{read_dir, DirEntry},
     path::Path,
+    process::exit,
 };
 
 use inquire::Text;
 
 pub fn get_user_input(prompt: &str) -> String {
-    // println!("{}", prompt);
-    // let mut input = String::new();
-    // io::stdin()
-    //     .read_line(&mut input)
-    //     .expect("Unable to read your input.");
-    // input.trim().to_owned()
-    Text::new(&format!("{prompt}\n"))
-        .prompt()
-        .expect("Unable to read your input")
+    let Ok(input) = Text::new(&format!("{prompt}\n")).prompt() else {
+            println!("Sorry, we couldn't handle your input.");
+            exit(0);
+    };
+    input
 }
 
 pub fn get_dirs(path: &Path) -> Vec<DirEntry> {
-    read_dir(path)
-        .expect("Error reading directory.")
-        .filter_map(Result::ok)
-        .collect()
+    let Ok(dir) = read_dir(path) else {
+        println!("Error reading the directory {}", path.display());
+        exit(0);
+    };
+    dir.filter_map(Result::ok).collect()
 }
 
 pub fn capitalize(value: &str) -> String {
