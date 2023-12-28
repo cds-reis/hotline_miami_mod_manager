@@ -26,7 +26,7 @@ fn main() {
     let action = get_desired_action();
     match action {
         Action::ChangeMod => change_mod(configs),
-        Action::ChangeConfigurationPath => change_configuration_path(&configs),
+        Action::ChangeConfigurationPath => change_configuration_path(configs),
         Action::ClearConfiguration => clear_configuration(),
         Action::Exit => exit(),
     }

@@ -100,7 +100,7 @@ fn create_configs_file() -> String {
 }
 
 pub fn save_configs_to_file(configs: &Configs) {
-    let game_path = (GAME_PATH_KEY, &configs.paths_config.game_path);
+    let game_path: (&str, &PathBuf) = (GAME_PATH_KEY, &configs.paths_config.game_path);
     let mods_path = (MODS_PATH_KEY, &configs.paths_config.mods_path);
     let mods_group_path = (GROUP_MODS_PATH_KEY, &configs.paths_config.mods_group_path);
     let current_mod = configs.current_mod.as_ref();
@@ -112,7 +112,7 @@ pub fn save_configs_to_file(configs: &Configs) {
     drop(fs::write(CONFIGS_FILE_NAME, file_content));
 }
 
-fn get_path(prompt: &str, path_name: &str) -> PathBuf {
+pub fn get_path(prompt: &str, path_name: &str) -> PathBuf {
     let path = PathBuf::from(get_user_input(prompt));
     panic_in_invalid_path(&path, path_name);
     path
