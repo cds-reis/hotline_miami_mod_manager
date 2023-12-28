@@ -122,7 +122,7 @@ fn panic_in_invalid_path(path: &Path, path_name: &str) {
     metadata(path).unwrap_or_else(|_| panic!("Could not find your {} path.", path_name));
 }
 
-pub const CONFIGS_FILE_NAME: &str = "configs.conf";
+pub const CONFIGS_FILE_NAME: &str = "hm_mod_manager_configs.conf";
 const GAME_PATH_PROMPT: &str =
     r"What is your HM2 path? If you are in doubt, check at C:\SteamLibrary\steamapps\common";
 const MODS_PATH_PROMPT: &str = r"What is your HM2 mods folder path?";
