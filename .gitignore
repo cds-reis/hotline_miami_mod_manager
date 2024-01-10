@@ -1,3 +1,4 @@
 /target
 /.vscode
-hm_mod_manager_configs.conf
+hm_mod_manager_path_configs.conf
+hm_mod_manager_mods_configs.conf

@@ -11,13 +11,12 @@ use fs_extra::{
 use indicatif::{HumanBytes, ProgressBar, ProgressStyle};
 
 use crate::{
-    configs::Configs, hotline_mod::HotlineMod, list_mods::format_mod_name,
-    replace_default_music::replace_default_music,
+    configs::Configs, hotline_mod::HotlineMod, replace_default_music::replace_default_music,
 };
 
 pub fn replace_mod(hm_mod: &HotlineMod, config: &Configs) {
     match &hm_mod.music {
-        Some(music_path) => replace_music(music_path, config),
+        Some(_) => replace_music(hm_mod, config),
         None => replace_default_music(config),
     }
     replace_mods(hm_mod, config);
@@ -29,8 +28,10 @@ fn replace_mods(hm_mod: &HotlineMod, config: &Configs) {
     if hm_mod.mods.is_empty() {
         return;
     }
-    let music = hm_mod.music.as_deref();
-    let progress_bar = ProgressBar::new(0).with_message(format_progress_bar_mods_message(music));
+    let message = format_progress_bar_mods_message(hm_mod);
+    let progress_bar = ProgressBar::new(0)
+        .with_message(message)
+        .with_style(ProgressStyle::default_bar().template("{msg}").unwrap());
     let handler = |transit_process: fs_extra::TransitProcess| {
         update_progress_bar(
             &progress_bar,
@@ -47,16 +48,14 @@ fn replace_mods(hm_mod: &HotlineMod, config: &Configs) {
     )
     .expect("Could not copy your mods successfully.");
 }
-
-fn remove_mods_in_mods_dir(mods_path: &Path) {
-    remove_dir_all(mods_path).expect("Error removing mods in the mods directory");
-    create_dir(mods_path).expect("Error removing mods in the mods directory.");
-}
-
-pub fn replace_music(music_path: &Path, config: &Configs) {
+pub fn replace_music(hm_mod: &HotlineMod, config: &Configs) {
+    let music_path = hm_mod
+        .music
+        .as_ref()
+        .expect("Should only be able to access this function when music is Some");
     let game_music_path = &config.paths_config.game_path.join(MUSIC_FILE_NAME);
     let copy_options = default_copy_options();
-    let message = format_progress_bar_music_message(music_path);
+    let message = format_progress_bar_music_message(hm_mod);
     let progress_bar = ProgressBar::new(0)
         .with_message(message)
         .with_style(ProgressStyle::default_bar().template("{msg}").unwrap());
@@ -71,21 +70,17 @@ pub fn replace_music(music_path: &Path, config: &Configs) {
         .expect("Could not copy the music file successfully.");
 }
 
-fn format_progress_bar_music_message(music_path: &Path) -> String {
-    music_path.file_name().map(format_mod_name).map_or_else(
-        || String::from("Copying music file."),
-        |name| format!("Copying {} music.", name),
-    )
+fn remove_mods_in_mods_dir(mods_path: &Path) {
+    remove_dir_all(mods_path).expect("Error removing mods in the mods directory");
+    create_dir(mods_path).expect("Error removing mods in the mods directory.");
 }
 
-fn format_progress_bar_mods_message(music_path: Option<&Path>) -> String {
-    music_path
-        .and_then(Path::file_name)
-        .map(format_mod_name)
-        .map_or_else(
-            || String::from("Copying mods files."),
-            |name| format!("Copying {} mods.", name),
-        )
+fn format_progress_bar_music_message(hm_mod: &HotlineMod) -> String {
+    format!("Copying {} music.", hm_mod.name.0)
+}
+
+fn format_progress_bar_mods_message(hm_mod: &HotlineMod) -> String {
+    format!("Copying {} mods.", hm_mod.name.0)
 }
 
 fn default_copy_options() -> CopyOptions {
