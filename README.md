@@ -4,7 +4,11 @@
 - Installing
   - Finding your game and mods paths
   - Organizing your mods files
-    - Creating a default mod
+  - Creating a default mod
+- How to use
+  - Changing mods
+  - Changing a path
+  - Clearing all configuration
 
 ## Introduction
 
@@ -94,3 +98,19 @@ my_mods
 For the program to work properly, there should be a default Hotline Miami 2 folder, containing the game's original music. This is because the program needs a fallback music to use when you swap from a mod with a custom music to a mod without a custom music, otherwise the previous mod music would be in it's place.
 
 For that, you should create a folder called `hotline_miami_2`, having the `music` folder, and the original music with it.
+
+## How to use
+
+After all the preparations are done, running the program will prompt you with all the options you can make.
+
+### Changing mods
+
+This action will show you all the mods you have in your folder, prompting you to select the one you desire to use. After selecting, the program will copy all the files to the desired paths, and now you can play with the mod you want!
+
+### Changing a path
+
+This is useful if you want to change one of the paths you have given, for example, if you want to change where you store your mods, or if you want to switch the game from an HD to a SSD.
+
+### Clearing all configuration
+
+Clears all the configuration, not much to say about this tbh.
