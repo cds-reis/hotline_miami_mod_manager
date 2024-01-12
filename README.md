@@ -15,7 +15,7 @@ Hotline Miami Mod Manager is a user-friendly application designed to streamline 
 
 ## Installing
 
-To install Hotline Miami Mod Manager, download the appropriate program for your system [here: !TODO]. During installation, the program will generate configuration files, so it's recommended to keep the application within its own dedicated folder for seamless file management.
+To install Hotline Miami Mod Manager, download the appropriate program for your system [here](https://github.com/cardosoOReis/hotline_miami_mod_manager/releases). During installation, the program will generate configuration files, so it's recommended to keep the application within its own dedicated folder for seamless file management.
 
 ### Finding your game and mods paths
 
@@ -41,7 +41,7 @@ You need to organize your folder in a simple, but specific way for the program t
 my_mods
 | - my_mod
 |    | - music
-|    |    | - music_file.wad
+|    |   | - music_file.wad
 |    | - mods
 |        | - mod_file_1.patchwad
 |        | - mod_file_2.patchwad
