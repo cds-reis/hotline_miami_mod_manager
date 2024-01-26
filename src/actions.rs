@@ -5,6 +5,7 @@ use inquire::Select;
 #[derive(Debug, Clone, Copy)]
 pub enum Action {
     ChangeMod,
+    RunGame,
     CreateNewModFolder,
     ChangeConfigurationPath,
     ClearConfiguration,
@@ -14,6 +15,7 @@ pub enum Action {
 impl Action {
     const VARIANTS: &'static [Action] = &[
         Action::ChangeMod,
+        Action::RunGame,
         Action::CreateNewModFolder,
         Action::ChangeConfigurationPath,
         Action::ClearConfiguration,
@@ -25,6 +27,7 @@ impl Display for Action {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Action::ChangeMod => write!(f, "Change the current mod."),
+            Action::RunGame => write!(f, "Run Hotline Miami 2."),
             Action::CreateNewModFolder => write!(f, "Create a new mod folder structure."),
             Action::ChangeConfigurationPath => write!(f, "Change one of your paths."),
             Action::ClearConfiguration => write!(f, "Clear your configuration."),
