@@ -1,5 +1,4 @@
-use std::{thread::sleep, time::Duration};
-
+use crate::create_new_mod_folder::create_new_mod_folder;
 use actions::{get_desired_action, Action};
 use change_configuration_path::change_configuration_path;
 use change_current_mod::change_mod;
@@ -20,16 +19,21 @@ pub mod hotline_mod;
 pub mod list_mods;
 pub mod replace_default_music;
 pub mod replace_mod;
+pub mod create_new_mod_folder;
 
 fn main() {
+    start();
+}
+
+fn start() {
     let configs = Configs::new();
     let action = get_desired_action();
     match action {
         Action::ChangeMod => change_mod(configs),
+        Action::CreateNewModFolder => create_new_mod_folder(&configs),
         Action::ChangeConfigurationPath => change_configuration_path(configs),
         Action::ClearConfiguration => clear_configuration(),
         Action::Exit => exit(),
     }
-
-    sleep(Duration::from_secs(4));
+    start()
 }

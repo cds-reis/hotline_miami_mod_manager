@@ -7,7 +7,9 @@ use std::{
 
 use crate::functions::capitalize;
 
-const VALID_MUSIC_EXTENSION: &str = "wad";
+pub const VALID_MUSIC_EXTENSION: &str = "wad";
+pub const MUSIC_FOLDER_NAME: &str = "music";
+pub const MODS_FOLDER_NAME: &str = "mods";
 
 #[derive(Debug)]
 pub struct HotlineMod {
@@ -63,7 +65,7 @@ fn get_name(mod_path: &Path) -> Option<HotlineModName> {
 }
 fn get_music(mod_path: &Path) -> Option<PathBuf> {
     mod_path
-        .join("music")
+        .join(MUSIC_FOLDER_NAME)
         .read_dir()
         .map(read_dir_to_path)
         .unwrap_or_default()
@@ -74,7 +76,7 @@ fn get_music(mod_path: &Path) -> Option<PathBuf> {
 
 fn get_mods(mod_path: &Path) -> Vec<PathBuf> {
     mod_path
-        .join("mods")
+        .join(MODS_FOLDER_NAME)
         .read_dir()
         .map(read_dir_to_path)
         .unwrap_or_default()

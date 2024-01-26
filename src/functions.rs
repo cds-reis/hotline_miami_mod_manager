@@ -14,11 +14,10 @@ pub fn get_user_input(prompt: &str) -> String {
         });
 }
 
-pub fn get_dirs(path: &Path) -> Vec<DirEntry> {
+pub fn get_dirs(path: &Path) -> Result<Vec<DirEntry>, std::io::Error> {
     read_dir(path)
         .map(|dir| dir.filter_map(Result::ok))
         .map(|dir| dir.collect())
-        .unwrap_or_default()
 }
 
 pub fn capitalize(value: &str) -> String {
