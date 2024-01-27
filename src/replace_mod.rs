@@ -16,13 +16,17 @@ use crate::{
 
 pub fn replace_mod(hm_mod: &HotlineMod, config: &Configs) {
     match &hm_mod.music {
-        Some(_) => replace_music(hm_mod, config),
-        None => replace_default_music(config),
-    }
+        Some(music) => {
+            replace_music(music, &hm_mod.name.0, config);
+        }
+        None => {
+            replace_default_music(config);
+        }
+    };
     replace_mods(hm_mod, config);
 }
 
-fn replace_mods(hm_mod: &HotlineMod, config: &Configs) {
+pub fn replace_mods(hm_mod: &HotlineMod, config: &Configs) {
     let game_mods_path = &config.paths_config.mods_path;
     remove_mods_in_mods_dir(game_mods_path);
     if hm_mod.mods.is_empty() {
@@ -48,14 +52,10 @@ fn replace_mods(hm_mod: &HotlineMod, config: &Configs) {
     )
     .expect("Could not copy your mods successfully.");
 }
-pub fn replace_music(hm_mod: &HotlineMod, config: &Configs) {
-    let music_path = hm_mod
-        .music
-        .as_ref()
-        .expect("Should only be able to access this function when music is Some");
+pub fn replace_music(music_path: &Path, mod_name: &str, config: &Configs) {
     let game_music_path = &config.paths_config.game_path.join(MUSIC_FILE_NAME);
     let copy_options = default_copy_options();
-    let message = format_progress_bar_music_message(hm_mod);
+    let message = format_progress_bar_music_message(mod_name);
     let progress_bar = ProgressBar::new(0)
         .with_message(message)
         .with_style(ProgressStyle::default_bar().template("{msg}").unwrap());
@@ -75,8 +75,8 @@ fn remove_mods_in_mods_dir(mods_path: &Path) {
     create_dir(mods_path).expect("Error removing mods in the mods directory.");
 }
 
-fn format_progress_bar_music_message(hm_mod: &HotlineMod) -> String {
-    format!("Copying {} music.", hm_mod.name.0)
+fn format_progress_bar_music_message(mod_name: &str) -> String {
+    format!("Copying {} music.", mod_name)
 }
 
 fn format_progress_bar_mods_message(hm_mod: &HotlineMod) -> String {
