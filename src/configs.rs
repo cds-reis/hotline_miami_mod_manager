@@ -65,8 +65,11 @@ fn format_paths_for_file(paths: &[(&str, &PathBuf)]) -> String {
     paths
         .iter()
         .map(|path| (path.0, path.1.display().to_string()))
-        .map(|path| format!("{}: {}\n", path.0, path.1))
-        .collect()
+        .fold(String::new(), |mut acc, path| {
+            acc += &format!("{}: {}\n", path.0, path.1);
+
+            acc
+        })
 }
 
 fn format_current_mod_for_file(mod_name: &HotlineModName) -> String {
@@ -91,8 +94,7 @@ fn read_mods_content_from_file() -> io::Result<HashMap<String, String>> {
         .or_else(|_| fs::write(MODS_CONFIG_FILE_NAME, String::new()).map(|_| String::new()))?;
     Ok(contents
         .lines()
-        .map(|s| s.split_once(':'))
-        .map(|s| s.expect("Invalid config data."))
+        .filter_map(|s| s.split_once(':'))
         .map(|s| (String::from(s.0), s.1))
         .map(|s| (s.0, s.1.trim()))
         .map(|s| (s.0, String::from(s.1)))

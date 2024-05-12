@@ -1,12 +1,15 @@
 use std::{
-    fs::{create_dir, remove_dir_all},
+    fs::{read_dir, DirEntry},
     path::Path,
 };
 
-use fs_extra::dir::{self, TransitProcessResult};
 use fs_extra::{
     copy_items_with_progress,
     file::{copy_with_progress, CopyOptions, TransitProcess},
+};
+use fs_extra::{
+    dir::{self, TransitProcessResult},
+    file::remove,
 };
 use indicatif::{HumanBytes, ProgressBar, ProgressStyle};
 
@@ -71,8 +74,27 @@ pub fn replace_music(music_path: &Path, mod_name: &str, config: &Configs) {
 }
 
 fn remove_mods_in_mods_dir(mods_path: &Path) {
-    remove_dir_all(mods_path).expect("Error removing mods in the mods directory");
-    create_dir(mods_path).expect("Error removing mods in the mods directory.");
+    let files_to_remove = read_dir(mods_path)
+        .expect("Could not read the mods directory")
+        .filter_map(|file| file.ok())
+        .filter(file_is_patchwad)
+        .collect::<Vec<_>>();
+
+    for file in files_to_remove {
+        _ = remove(file.path());
+    }
+}
+
+fn file_is_patchwad(dir_entry: &DirEntry) -> bool {
+    let path = dir_entry.path();
+
+    let is_file = path.is_file();
+    let is_patchwad = path
+        .extension()
+        .map(|extension| extension.eq_ignore_ascii_case("patchwad"))
+        .unwrap_or(false);
+    
+    is_file && is_patchwad
 }
 
 fn format_progress_bar_music_message(mod_name: &str) -> String {
