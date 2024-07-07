@@ -1,8 +1,8 @@
-use std::{fmt::Display, path::PathBuf};
+use std::path::PathBuf;
 
 use inquire::Select;
 
-use crate::configs::{get_path, save_configs_to_file, Configs, PathsConfig};
+use crate::configs::{get_path, paths_config::{ConfigurationPaths, PathsConfig}, Configs};
 
 pub fn change_configuration_path(configs: Configs) {
     let config_path = get_desired_path_to_change();
@@ -50,32 +50,6 @@ fn on_group_path(path: PathBuf, config: Configs) {
     };
 
     save_configs_to_file(&config);
-}
-
-#[derive(Debug, Clone, Copy)]
-enum ConfigurationPaths {
-    Game,
-    Mods,
-    Group,
-}
-
-impl ConfigurationPaths {
-    const VARIANTS: &'static [ConfigurationPaths] = &[
-        ConfigurationPaths::Game,
-        ConfigurationPaths::Group,
-        ConfigurationPaths::Mods,
-    ];
-}
-
-impl Display for ConfigurationPaths {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let message = match self {
-            ConfigurationPaths::Game => "Your game's folder.",
-            ConfigurationPaths::Mods => "Your mods' folder.",
-            ConfigurationPaths::Group => "The folder where you keep your mods.",
-        };
-        write!(f, "{}", message)
-    }
 }
 
 fn get_desired_path_to_change() -> ConfigurationPaths {

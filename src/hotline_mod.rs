@@ -13,10 +13,15 @@ pub const MODS_FOLDER_NAME: &str = "mods";
 
 #[derive(Debug)]
 pub struct HotlineMod {
-    pub name: HotlineModName,
-    pub music: Option<PathBuf>,
-    pub mods: Vec<PathBuf>,
+    name: HotlineModName,
+    music: Option<Music>,
+    mods: AssociatedMods,
 }
+
+#[derive(Debug)]
+pub struct Music(PathBuf);
+#[derive(Debug)]
+pub struct AssociatedMods(Vec<PathBuf>);
 
 impl fmt::Display for HotlineMod {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -31,38 +36,61 @@ impl HotlineMod {
         let mods = get_mods(mod_path);
         Some(HotlineMod { name, music, mods })
     }
+
+    
+    pub fn name(&self) -> &HotlineModName {
+        &self.name
+    }
+    
+    pub fn music(&self) -> Option<&PathBuf> {
+        self.music.as_ref()
+    }
+    
+    pub fn mods(&self) -> &[PathBuf] {
+        &self.mods
+    }
 }
 
+fn get_name(mod_path: &Path) -> Option<HotlineModName> {
+    let directory_name = mod_path.file_name()?.to_str()?;
+
+    Some(HotlineModName::from_directory(directory_name))
+}
 #[derive(Debug)]
-pub struct HotlineModName(pub String);
+pub struct HotlineModName {
+    dir_name: String,
+    formatted_name: String,
+}
 
 impl HotlineModName {
-    pub fn new(directory_name: &str) -> Self {
-        let name = directory_name
+    pub fn from_directory(directory_name: &str) -> Self {
+        let formatted_name = directory_name
             .split('_')
             .map(capitalize)
             .collect::<Vec<String>>()
             .join(" ");
-        HotlineModName(name)
+
+        HotlineModName {
+            dir_name: String::from(directory_name),
+            formatted_name,
+        }
     }
 
-    pub fn directory_name(&self) -> String {
-        self.0.to_lowercase().replace(' ', "_")
+    pub fn directory_name(&self) -> &str {
+        &self.dir_name
+    }
+
+    pub fn formatted_name(&self) -> &str {
+        &self.formatted_name
     }
 }
 
 impl fmt::Display for HotlineModName {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{}", self.formatted_name)
     }
 }
 
-fn get_name(mod_path: &Path) -> Option<HotlineModName> {
-    mod_path
-        .file_name()
-        .and_then(OsStr::to_str)
-        .map(HotlineModName::new)
-}
 fn get_music(mod_path: &Path) -> Option<PathBuf> {
     mod_path
         .join(MUSIC_FOLDER_NAME)

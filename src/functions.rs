@@ -4,17 +4,22 @@ use std::{
     path::Path,
 };
 
-use inquire::Text;
+use inquire::{InquireError, Text};
 
-use crate::{configs::{save_configs_to_file, Configs}, hotline_mod::HotlineMod};
+use crate::{configs::Configs, hotline_mod::HotlineMod};
 
 pub fn get_user_input(prompt: &str) -> String {
-    return Text::new(&format!("{prompt}\n"))
+    Text::new(&format!("{prompt}\n"))
         .prompt()
-        .unwrap_or_else(|_| {
-            println!("We couldn't handle your input. Please try again.");
-            get_user_input(prompt)
-        });
+        .unwrap_or_else(|err| match err {
+            InquireError::OperationCanceled | InquireError::OperationInterrupted => {
+                panic!("user exited the program.")
+            }
+            _ => {
+                println!("We couldn't handle your input. Please try again.");
+                get_user_input(prompt)
+            }
+        })
 }
 
 pub fn get_dirs(path: &Path) -> Result<Vec<DirEntry>, std::io::Error> {

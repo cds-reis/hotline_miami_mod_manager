@@ -6,6 +6,7 @@ use clear_configuration::clear_configuration;
 use configs::Configs;
 use exit::exit;
 use get_desired_mod::get_desired_mod;
+use manager::HotlineModManager;
 use run_game::run_hotline_miami_2;
 use use_default_settings::use_default_settings;
 
@@ -24,13 +25,14 @@ pub mod replace_mod;
 pub mod create_new_mod_folder;
 pub mod run_game;
 pub mod use_default_settings;
+pub mod manager;
 
 fn main() {
     start();
 }
 
 fn start() {
-    let configs = Configs::new();
+    let manager = HotlineModManager::build().unwrap();
     let action = get_desired_action();
     match action {
         Action::ChangeMod => change_mod(configs),
