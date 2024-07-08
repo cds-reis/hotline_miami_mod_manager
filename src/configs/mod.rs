@@ -28,11 +28,21 @@ impl Configs {
             .inspect_err(Self::on_current_mod_error)
             .ok();
         print_mod_name(current_mod.as_ref());
-        
+
         Ok(Configs {
             paths_config,
             current_mod,
         })
+    }
+
+    pub fn clear(&self) -> anyhow::Result<()> {
+        self.paths_config.clear()?;
+
+        if let Some(current_mod) = &self.current_mod {
+            current_mod.clear()?;
+        }
+
+        Ok(())
     }
 
     pub fn paths_config(&self) -> &PathsConfig {
@@ -48,13 +58,14 @@ impl Configs {
         paths_config: PathsConfig,
     ) -> Result<(), paths_config::PathsConfigError> {
         self.paths_config = paths_config;
-        paths_config.save()
+        self.paths_config.save()
     }
 
     pub fn set_current_mod(&mut self, current_mod: HotlineModName) -> Result<(), CurrentModError> {
         let current_mod = CurrentMod::from_mod(current_mod);
+        current_mod.save()?;
         self.current_mod = Some(current_mod);
-        current_mod.save()
+        Ok(())
     }
 
     fn on_current_mod_error(err: &CurrentModError) {
@@ -75,7 +86,6 @@ fn print_mod_name(current_mod: Option<&CurrentMod>) {
     println!("You are currently using: {mod_name}");
 }
 
-
 fn format_paths_for_file(paths: &[(&str, &PathBuf)]) -> String {
     paths
         .iter()
@@ -89,7 +99,7 @@ fn format_paths_for_file(paths: &[(&str, &PathBuf)]) -> String {
 
 fn format_current_mod_for_file(current_mod: &CurrentMod) -> String {
     let dir_name = current_mod.name().directory_name();
-    format!("{}: {}\n", CURRENT_MOD_KEY, dir_name)
+    format!("{}: {}\n", CURRENT_MOD_KEY, dir_name.to_string_lossy())
 }
 
 fn read_path_contents_from_file() -> HashMap<String, PathBuf> {

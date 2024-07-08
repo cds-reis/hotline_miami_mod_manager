@@ -1,6 +1,5 @@
 use std::fmt::Display;
 
-use inquire::Select;
 
 #[derive(Debug, Clone, Copy)]
 pub enum Action {
@@ -14,7 +13,7 @@ pub enum Action {
 }
 
 impl Action {
-    const VARIANTS: &'static [Action] = &[
+    pub const VARIANTS: &'static [Action] = &[
         Action::ChangeMod,
         Action::RunGame,
         Action::UseDefaultSettings,
@@ -37,10 +36,4 @@ impl Display for Action {
             Action::Exit => write!(f, "Exit."),
         }
     }
-}
-
-pub fn get_desired_action() -> Action {
-    Select::new("What do you want to do?", Vec::from(Action::VARIANTS))
-        .prompt()
-        .expect("Error trying to read you input.")
 }

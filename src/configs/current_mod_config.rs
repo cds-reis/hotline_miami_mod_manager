@@ -18,15 +18,21 @@ impl CurrentMod {
             .or_else(|_| Self::create_file())
             .map_err(CurrentModError::from)?;
 
-        let current_mod_path = contents
+        let current_mod = contents
             .remove(Self::key())
-            .and_then(|path| path.as_os_str().to_str())
             .ok_or(CurrentModError::CurrentModNotFound)?;
 
-        Ok(CurrentMod(HotlineModName::from_directory(current_mod_path)))
+        let mod_name = HotlineModName::from_directory(current_mod);
+
+        Ok(CurrentMod(mod_name))
     }
 
-    pub fn from_mod( name: HotlineModName) -> Self {
+    pub fn clear(&self) -> Result<(), CurrentModError> {
+        fs::remove_file(MODS_CONFIG_FILE_NAME)
+            .map_err(|err| CurrentModError::FileClearingError(err))
+    }
+
+    pub fn from_mod(name: HotlineModName) -> Self {
         CurrentMod(name)
     }
 
@@ -48,7 +54,11 @@ impl CurrentMod {
     }
 
     fn format_for_file(&self) -> String {
-        format!("{}: {}\n", Self::key(), self.0.directory_name())
+        format!(
+            "{}: {}\n",
+            Self::key(),
+            self.0.directory_name().to_string_lossy()
+        )
     }
 
     fn get_file_contents() -> io::Result<HashMap<String, PathBuf>> {
@@ -77,6 +87,8 @@ pub enum CurrentModError {
     IoError(#[from] io::Error),
     #[error("The current mod was not found. Maybe it's the first time using the program?")]
     CurrentModNotFound,
+    #[error("Something went wrong when deleting the file {MODS_CONFIG_FILE_NAME}. Error: {0}")]
+    FileClearingError(io::Error),
 }
 
 const MODS_CONFIG_FILE_NAME: &str = "hm_mod_manager_mods_configs.conf";

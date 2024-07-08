@@ -1,5 +1,10 @@
 use std::{
-    collections::HashMap, fmt::Display, fs::{metadata, File}, io::{self, Read, Write}, path::{Path, PathBuf}
+    collections::HashMap,
+    fmt::Display,
+    fs::{self, metadata, File},
+    io::{self, Read, Write},
+    path::{Path, PathBuf},
+    rc::Rc,
 };
 
 use thiserror::Error;
@@ -50,6 +55,11 @@ impl PathsConfig {
             mods_path,
             mods_group_path,
         })
+    }
+
+    pub fn clear(&self) -> Result<(), PathsConfigError> {
+        fs::remove_file(PATH_CONFIGS_FILE_NAME)
+            .map_err(|err| PathsConfigError::FileClearingError(err))
     }
 
     pub fn save(&self) -> Result<(), PathsConfigError> {
@@ -157,10 +167,12 @@ pub enum PathsConfigError {
     ModsPathNotFound,
     #[error("Mods group path not found in configuration file.")]
     ModsGroupPathNotFound,
+    #[error("Something went wrong when deleting the file {PATH_CONFIGS_FILE_NAME}. Error: {0}")]
+    FileClearingError(io::Error),
 }
 
 pub trait ProgramPath {
-    fn new(path: PathBuf) -> Self;
+    fn new(path: impl Into<Rc<Path>>) -> Self;
     fn path(&self) -> &Path;
     fn key() -> &'static str;
     fn name() -> &'static str;
@@ -185,15 +197,15 @@ impl<'a> PathFileEntry<'a> {
 }
 
 #[derive(Debug)]
-pub struct GamePath(PathBuf);
+pub struct GamePath(Rc<Path>);
 
 impl ProgramPath for GamePath {
-    fn new(path: PathBuf) -> Self {
-        GamePath(path)
+    fn new(path: impl Into<Rc<Path>>) -> Self {
+        GamePath(path.into())
     }
 
     fn path(&self) -> &Path {
-        self.0.as_path()
+        self.0.as_ref()
     }
 
     fn key() -> &'static str {
@@ -209,15 +221,15 @@ impl ProgramPath for GamePath {
     }
 }
 #[derive(Debug)]
-pub struct ModsPath(PathBuf);
+pub struct ModsPath(Rc<Path>);
 
 impl ProgramPath for ModsPath {
-    fn new(path: PathBuf) -> Self {
-        ModsPath(path)
+    fn new(path: impl Into<Rc<Path>>) -> Self {
+        ModsPath(path.into())
     }
 
     fn path(&self) -> &Path {
-        self.0.as_path()
+        self.0.as_ref()
     }
 
     fn key() -> &'static str {
@@ -233,15 +245,15 @@ impl ProgramPath for ModsPath {
     }
 }
 #[derive(Debug)]
-pub struct ModsGroupPath(PathBuf);
+pub struct ModsGroupPath(Rc<Path>);
 
 impl ProgramPath for ModsGroupPath {
-    fn new(path: PathBuf) -> Self {
-        ModsGroupPath(path)
+    fn new(path: impl Into<Rc<Path>>) -> Self {
+        ModsGroupPath(path.into())
     }
 
     fn path(&self) -> &Path {
-        self.0.as_path()
+        self.0.as_ref()
     }
 
     fn key() -> &'static str {
