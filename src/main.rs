@@ -1,3 +1,5 @@
+#![warn(clippy::perf)]
+
 use manager::HotlineModManager;
 use run_game::run_hotline_miami_2;
 
@@ -16,7 +18,7 @@ pub mod select_mod;
 fn main() -> anyhow::Result<()> {
     let manager = HotlineModManager::build();
     match manager {
-        Ok(manager) => manager.run(),
+        Ok(mut manager) => manager.run(),
         Err(_) => todo!(),
     }
 }

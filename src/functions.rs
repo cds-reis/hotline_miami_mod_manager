@@ -10,9 +10,7 @@ pub fn get_user_input(prompt: &str) -> String {
     Text::new(&format!("{prompt}\n"))
         .prompt()
         .unwrap_or_else(|err| match err {
-            InquireError::OperationCanceled | InquireError::OperationInterrupted => {
-                panic!("user exited the program.")
-            }
+            InquireError::OperationInterrupted => panic!("user exited the program."),
             _ => {
                 println!("We couldn't handle your input. Please try again.");
                 get_user_input(prompt)

@@ -58,7 +58,7 @@ pub enum ReplaceModError {
 
 fn remove_mods_in_mods_dir(mods_path: &ModsPath) -> Result<(), ReplaceModError> {
     let files_to_remove = fs::read_dir(mods_path.path())
-        .map_err(|err| ReplaceModError::ReadingModsDirectory(err))?
+        .map_err(ReplaceModError::ReadingModsDirectory)?
         .filter_map(|file| file.ok())
         .filter(file_is_patchwad)
         .collect::<Vec<_>>();

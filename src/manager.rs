@@ -1,6 +1,10 @@
+use crate::{
+    change_configuration_path::get_desired_path_to_change,
+    configs::paths_config::ConfigurationPath, exit::exit,
+};
 use std::{fs, ops::Deref};
 
-use anyhow::{anyhow, Context};
+use anyhow::{anyhow, bail};
 use inquire::{InquireError, Select};
 
 use crate::{
@@ -31,7 +35,7 @@ impl HotlineModManager {
 
         let default_game = default_game_index
             .map(|index| all_mods.0.remove(index))
-            .map(|hm_mod| DefaultHotlineMod(hm_mod));
+            .map(DefaultHotlineMod);
 
         if default_game.is_none() {
             println!("{}", ORIGINAL_GAME_SETTINGS_NOT_FOUND_WARNING);
@@ -44,7 +48,7 @@ impl HotlineModManager {
         })
     }
 
-    pub fn run(&self) -> anyhow::Result<()> {
+    pub fn run(&mut self) -> anyhow::Result<()> {
         loop {
             let action = self.get_action();
             if let Err(error) = match action {
@@ -52,7 +56,7 @@ impl HotlineModManager {
                 Action::RunGame => self.run_hotline_miami_2(),
                 Action::UseDefaultSettings => self.use_default_settings(),
                 Action::CreateNewModFolder => self.create_new_mod_folder(),
-                Action::ChangeConfigurationPath => change_configuration_path(configs),
+                Action::ChangeConfigurationPath => self.change_configuration_path(),
                 Action::ClearConfiguration => self.clear_configuration(),
                 Action::Exit => exit(),
             } {
@@ -62,11 +66,8 @@ impl HotlineModManager {
     }
 
     fn get_action(&self) -> Action {
-        let prompt = Select::new(
-            "What do you want to do?",
-            Action::VARIANTS.into_iter().collect(),
-        )
-        .prompt();
+        let prompt =
+            Select::new("What do you want to do?", Action::VARIANTS.iter().collect()).prompt();
 
         match prompt {
             Ok(action) => *action,
@@ -174,6 +175,27 @@ impl HotlineModManager {
 
         Ok(())
     }
+
+    fn change_configuration_path(&mut self) -> anyhow::Result<()> {
+        match get_desired_path_to_change() {
+            Ok(ConfigurationPath::Game(path)) => {
+                self.configs.mut_paths_config().set_game_path(path.into());
+            }
+            Ok(ConfigurationPath::Mods(path)) => {
+                self.configs.mut_paths_config().set_mods_path(path.into());
+            }
+            Ok(ConfigurationPath::Group(path)) => {
+                self.configs
+                    .mut_paths_config()
+                    .set_mods_group_path(path.into());
+            }
+            Err(InquireError::OperationCanceled) => return Ok(()),
+            Err(InquireError::OperationInterrupted) => panic!("User requested to quit application"),
+            Err(err) => bail!(err),
+        };
+
+        Ok(())
+    }
 }
 
 pub struct DefaultHotlineMod(HotlineMod);
@@ -199,7 +221,7 @@ fn list_mods(mods_path: &ModsGroupPath) -> anyhow::Result<AllMods> {
         .filter_map(|path| HotlineMod::new(&path))
         .collect();
 
-    Ok(AllMods(vec))
+    Ok(AllMods::new(vec))
 }
 
 pub struct AllMods(Vec<HotlineMod>);

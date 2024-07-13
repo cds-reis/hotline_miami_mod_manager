@@ -58,8 +58,7 @@ impl PathsConfig {
     }
 
     pub fn clear(&self) -> Result<(), PathsConfigError> {
-        fs::remove_file(PATH_CONFIGS_FILE_NAME)
-            .map_err(|err| PathsConfigError::FileClearingError(err))
+        fs::remove_file(PATH_CONFIGS_FILE_NAME).map_err(PathsConfigError::FileClearingError)
     }
 
     pub fn save(&self) -> Result<(), PathsConfigError> {
@@ -84,8 +83,16 @@ impl PathsConfig {
         &self.mods_group_path
     }
 
-    pub fn with_game_path(self, game_path: GamePath) -> Self {
-        PathsConfig { game_path, ..self }
+    pub fn set_game_path(&mut self, game_path: GamePath) {
+        self.game_path = game_path;
+    }
+
+    pub fn set_mods_path(&mut self, mods_path: ModsPath) {
+        self.mods_path = mods_path;
+    }
+
+    pub fn set_mods_group_path(&mut self, mods_group_path: ModsGroupPath) {
+        self.mods_group_path = mods_group_path;
     }
 
     pub fn with_mods_path(self, mods_path: ModsPath) -> Self {
@@ -124,7 +131,7 @@ impl PathsConfig {
     fn flush_entries(entries: &[PathFileEntry]) -> Result<(), PathsConfigError> {
         _ = File::open(PATH_CONFIGS_FILE_NAME)
             .map_err(PathsConfigError::FileLoadingError)?
-            .write(Self::format_paths_for_file(&entries).as_bytes())
+            .write(Self::format_paths_for_file(entries).as_bytes())
             .map_err(PathsConfigError::FileWritingError)?;
 
         Ok(())
@@ -185,7 +192,7 @@ pub trait ProgramPath {
     }
 }
 #[derive(Debug)]
-struct PathFileEntry<'a> {
+pub struct PathFileEntry<'a> {
     key: &'static str,
     path: &'a Path,
 }
@@ -196,7 +203,7 @@ impl<'a> PathFileEntry<'a> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct GamePath(Rc<Path>);
 
 impl ProgramPath for GamePath {
@@ -220,7 +227,7 @@ impl ProgramPath for GamePath {
         "game's"
     }
 }
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ModsPath(Rc<Path>);
 
 impl ProgramPath for ModsPath {
@@ -244,7 +251,7 @@ impl ProgramPath for ModsPath {
         "mods"
     }
 }
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ModsGroupPath(Rc<Path>);
 
 impl ProgramPath for ModsGroupPath {
@@ -269,28 +276,125 @@ impl ProgramPath for ModsGroupPath {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
-pub enum ConfigurationPaths {
-    Game,
-    Mods,
-    Group,
+#[derive(Debug, Clone)]
+pub enum ConfigurationPath<S: PathState> {
+    Game(ConfigPath<S>),
+    Mods(ConfigPath<S>),
+    Group(ConfigPath<S>),
 }
 
-impl ConfigurationPaths {
-    pub const VARIANTS: &'static [ConfigurationPaths] = &[
-        ConfigurationPaths::Game,
-        ConfigurationPaths::Group,
-        ConfigurationPaths::Mods,
+impl<S: PathState> ConfigurationPath<S> {
+    pub fn name(&self) -> &str {
+        match self {
+            ConfigurationPath::Game(_) => "game's",
+            ConfigurationPath::Mods(_) => "mod's",
+            ConfigurationPath::Group(_) => "group mod's",
+        }
+    }
+}
+
+impl ConfigurationPath<WithoutPath> {
+    pub fn with_path(self, path: impl Into<Rc<Path>>) -> ConfigurationPath<WithPath> {
+        match self {
+            ConfigurationPath::Game(config_path) => {
+                ConfigurationPath::Game(config_path.with_path(path))
+            }
+            ConfigurationPath::Mods(config_path) => {
+                ConfigurationPath::Mods(config_path.with_path(path))
+            }
+            ConfigurationPath::Group(config_path) => {
+                ConfigurationPath::Group(config_path.with_path(path))
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ConfigPath<S: PathState>(S);
+
+impl From<ConfigPath<WithPath>> for GamePath {
+    fn from(val: ConfigPath<WithPath>) -> Self {
+        GamePath(val.0 .0)
+    }
+}
+
+impl From<ConfigPath<WithPath>> for ModsPath {
+    fn from(val: ConfigPath<WithPath>) -> Self {
+        ModsPath(val.0 .0)
+    }
+}
+
+impl From<ConfigPath<WithPath>> for ModsGroupPath {
+    fn from(val: ConfigPath<WithPath>) -> Self {
+        ModsGroupPath(val.0 .0)
+    }
+}
+
+impl ConfigPath<WithoutPath> {
+    pub const fn new() -> Self {
+        ConfigPath(WithoutPath)
+    }
+
+    pub fn with_path(self, path: impl Into<Rc<Path>>) -> ConfigPath<WithPath> {
+        ConfigPath(WithPath(path.into()))
+    }
+}
+
+impl Default for ConfigPath<WithoutPath> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl ConfigPath<WithPath> {
+    pub fn path(&self) -> &Path {
+        &self.0 .0
+    }
+}
+
+pub trait PathState {}
+pub struct WithPath(Rc<Path>);
+impl PathState for WithPath {}
+#[derive(Clone)]
+pub struct WithoutPath;
+impl PathState for WithoutPath {}
+
+impl ConfigurationPath<WithoutPath> {
+    pub const VARIANTS: &'static [ConfigurationPath<WithoutPath>] = &[
+        ConfigurationPath::Game(ConfigPath::new()),
+        ConfigurationPath::Group(ConfigPath::new()),
+        ConfigurationPath::Mods(ConfigPath::new()),
     ];
 }
 
-impl Display for ConfigurationPaths {
+impl Display for ConfigurationPath<WithoutPath> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let message = match self {
-            ConfigurationPaths::Game => "Your game's folder.",
-            ConfigurationPaths::Mods => "Your mods' folder.",
-            ConfigurationPaths::Group => "The folder where you keep your mods.",
+            ConfigurationPath::Game(_) => "Your game's folder.",
+            ConfigurationPath::Mods(_) => "Your mods' folder.",
+            ConfigurationPath::Group(_) => "The folder where you keep your mods.",
         };
+        write!(f, "{}", message)
+    }
+}
+
+impl Display for ConfigurationPath<WithPath> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let message = match self {
+            ConfigurationPath::Game(ConfigPath(WithPath(path))) => {
+                format!("Your game's folder is: {}.", path.to_string_lossy())
+            }
+            ConfigurationPath::Mods(ConfigPath(WithPath(path))) => {
+                format!("Your mods' folder is: {}.", path.to_string_lossy())
+            }
+            ConfigurationPath::Group(ConfigPath(WithPath(path))) => {
+                format!(
+                    "The folder where you keep your mods is: {}",
+                    path.to_string_lossy()
+                )
+            }
+        };
+
         write!(f, "{}", message)
     }
 }

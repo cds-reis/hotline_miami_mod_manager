@@ -125,7 +125,7 @@ fn get_music(mod_path: &Path) -> Option<Music> {
         .first()
         .filter(|path| is_valid_music_file(path))
         .map(ToOwned::to_owned)
-        .map(|music| Music(Rc::from(music)))
+        .map(Music)
 }
 
 fn get_mods(mod_path: &Path) -> AssociatedMods {

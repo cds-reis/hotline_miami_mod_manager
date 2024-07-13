@@ -28,8 +28,7 @@ impl CurrentMod {
     }
 
     pub fn clear(&self) -> Result<(), CurrentModError> {
-        fs::remove_file(MODS_CONFIG_FILE_NAME)
-            .map_err(|err| CurrentModError::FileClearingError(err))
+        fs::remove_file(MODS_CONFIG_FILE_NAME).map_err(CurrentModError::FileClearingError)
     }
 
     pub fn from_mod(name: HotlineModName) -> Self {

@@ -14,7 +14,7 @@ pub fn select_mod(mods: &[HotlineMod]) -> Result<HotlineMod, ChangeCurrentModErr
         Err(InquireError::OperationInterrupted) => {
             Err(ChangeCurrentModError::UserExitedApplication)
         }
-        Err(err) => return Err(From::from(err)),
+        Err(err) => Err(From::from(err)),
     }
 }
 
