@@ -1,4 +1,4 @@
-#![warn(clippy::perf)]
+#![warn(clippy::pedantic)]
 
 use manager::HotlineModManager;
 use run_game::run_hotline_miami_2;
