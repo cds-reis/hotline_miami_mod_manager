@@ -7,5 +7,5 @@ fn update_progress_bar(progress_bar: &ProgressBar, total_bytes: u64, copied_byte
     let total = HumanBytes(total_bytes).to_string();
     let copied = HumanBytes(copied_bytes).to_string();
 
-    progress_bar.set_message(format!("Copied: {} - Total: {}", copied, total));
+    progress_bar.set_message(format!("Copied: {copied} - Total: {total}"));
 }

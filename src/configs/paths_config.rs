@@ -2,7 +2,7 @@ use std::{
     collections::HashMap,
     fmt::Display,
     fs::{self, metadata, File},
-    io::{self, Read, Write},
+    io::{self, Write},
     path::{Path, PathBuf},
     rc::Rc,
 };
@@ -18,19 +18,27 @@ pub struct PathsConfig {
     mods_group_path: ModsGroupPath,
 }
 
+impl Display for PathsConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "PathsConfig(game_path:{},mods_path:{},mods_group_path:{})",
+            self.game_path.0.to_string_lossy(),
+            self.mods_path.0.to_string_lossy(),
+            self.mods_group_path.0.to_string_lossy()
+        )
+    }
+}
+
 impl PathsConfig {
-    pub fn build() -> Result<PathsConfig, PathsConfigError> {
-        let mut file =
-            Self::get_path_configs_file().or_else(|_| Self::create_path_configs_file())?;
-        let mut content = String::new();
+    pub fn build() -> Result<Self, PathsConfigError> {
+        let Ok(file) = Self::get_path_configs_file() else {
+            return Self::create_path_configs_file();
+        };
 
-        _ = file
-            .read_to_string(&mut content)
-            .map_err(PathsConfigError::InvalidFileContent)?;
-
-        let mut entries = content
+        let mut entries = file
             .lines()
-            .map(|line| line.trim())
+            .map(str::trim)
             .filter_map(|line| line.split_once(':'))
             .map(|(key, value)| (key.to_string(), PathBuf::from(value)))
             .collect::<HashMap<_, _>>();
@@ -105,11 +113,18 @@ impl PathsConfig {
         }
     }
 
-    fn get_path_configs_file() -> Result<File, PathsConfigError> {
-        File::open(PATH_CONFIGS_FILE_NAME).map_err(PathsConfigError::FileLoadingError)
+    fn get_path_configs_file() -> Result<String, PathsConfigError> {
+        let configs = fs::read_to_string(PATH_CONFIGS_FILE_NAME)
+            .map_err(PathsConfigError::FileLoadingError)?;
+
+        if configs.lines().collect::<Vec<_>>().len() != 3 {
+            return Err(PathsConfigError::InvalidFileContent);
+        }
+
+        Ok(configs)
     }
 
-    fn create_path_configs_file() -> Result<File, PathsConfigError> {
+    fn create_path_configs_file() -> Result<Self, PathsConfigError> {
         let mut file =
             File::create(PATH_CONFIGS_FILE_NAME).map_err(PathsConfigError::FileLoadingError)?;
         let game_path = Self::request_path_from_user::<GamePath>();
@@ -125,7 +140,11 @@ impl PathsConfig {
             .write(Self::format_paths_for_file(&entries).as_bytes())
             .map_err(PathsConfigError::FileWritingError)?;
 
-        Ok(file)
+        Ok(PathsConfig {
+            game_path,
+            mods_path,
+            mods_group_path,
+        })
     }
 
     fn flush_entries(entries: &[PathFileEntry]) -> Result<(), PathsConfigError> {
@@ -139,22 +158,21 @@ impl PathsConfig {
 
     fn request_path_from_user<P: ProgramPath>() -> P {
         let path = PathBuf::from(get_user_input(P::prompt()));
-        match metadata(&path) {
-            Ok(_) => P::new(path),
-            Err(_) => {
-                println!(
-                    "Could not validate your {} path, please write it again.",
-                    P::name()
-                );
-                Self::request_path_from_user()
-            }
+        if metadata(&path).is_ok() {
+            P::new(path)
+        } else {
+            println!(
+                "Could not validate your {} path, please write it again.",
+                P::name()
+            );
+            Self::request_path_from_user()
         }
     }
 
     fn format_paths_for_file(entries: &[PathFileEntry]) -> String {
         let mut buffer = String::new();
         for entry in entries {
-            buffer += &entry.format()
+            buffer += &entry.format();
         }
         buffer
     }
@@ -165,7 +183,7 @@ pub enum PathsConfigError {
     #[error("File containing path configuration failed to load.")]
     FileLoadingError(io::Error),
     #[error("Content found in path configuration file could not be read.")]
-    InvalidFileContent(io::Error),
+    InvalidFileContent,
     #[error("Error trying to write paths to file.")]
     FileWritingError(io::Error),
     #[error("Game path not found in configuration file.")]
@@ -199,7 +217,7 @@ pub struct PathFileEntry<'a> {
 
 impl<'a> PathFileEntry<'a> {
     fn format(&self) -> String {
-        format!("{}: {}\n", self.key, self.path.display())
+        format!("{}:{}\n", self.key, self.path.display())
     }
 }
 
@@ -374,7 +392,7 @@ impl Display for ConfigurationPath<WithoutPath> {
             ConfigurationPath::Mods(_) => "Your mods' folder.",
             ConfigurationPath::Group(_) => "The folder where you keep your mods.",
         };
-        write!(f, "{}", message)
+        write!(f, "{message}")
     }
 }
 
@@ -395,7 +413,7 @@ impl Display for ConfigurationPath<WithPath> {
             }
         };
 
-        write!(f, "{}", message)
+        write!(f, "{message}")
     }
 }
 

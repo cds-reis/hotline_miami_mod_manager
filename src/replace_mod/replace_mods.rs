@@ -59,7 +59,7 @@ pub enum ReplaceModError {
 fn remove_mods_in_mods_dir(mods_path: &ModsPath) -> Result<(), ReplaceModError> {
     let files_to_remove = fs::read_dir(mods_path.path())
         .map_err(ReplaceModError::ReadingModsDirectory)?
-        .filter_map(|file| file.ok())
+        .filter_map(Result::ok)
         .filter(file_is_patchwad)
         .collect::<Vec<_>>();
 
@@ -78,14 +78,13 @@ fn file_is_patchwad(dir_entry: &DirEntry) -> bool {
     let is_file = path.is_file();
     let is_patchwad = path
         .extension()
-        .map(|extension| extension.eq_ignore_ascii_case("patchwad"))
-        .unwrap_or(false);
+        .is_some_and(|extension| extension.eq_ignore_ascii_case("patchwad"));
 
     is_file && is_patchwad
 }
 
 fn progress_bar(mod_name: &HotlineModName) -> ProgressBar {
-    let progress_bar_message = format!("Copying {} mods.", mod_name);
+    let progress_bar_message = format!("Copying {mod_name} mods.");
     let style = ProgressStyle::default_bar().template("{msg}").unwrap();
     ProgressBar::new(0)
         .with_message(progress_bar_message)

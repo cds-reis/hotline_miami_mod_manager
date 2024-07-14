@@ -37,7 +37,7 @@ pub enum ReplaceMusicError {
 }
 
 fn progress_bar(mod_name: &HotlineModName) -> ProgressBar {
-    let progress_bar_message = format!("Copying {} music.", mod_name);
+    let progress_bar_message = format!("Copying {mod_name} music.");
     let style = ProgressStyle::default_bar().template("{msg}").unwrap();
     ProgressBar::new(0)
         .with_message(progress_bar_message)

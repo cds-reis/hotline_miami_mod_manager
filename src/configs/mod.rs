@@ -1,9 +1,8 @@
 pub mod current_mod_config;
 pub mod paths_config;
 
-use std::{fs::metadata, path::PathBuf};
 
-use crate::{functions::get_user_input, hotline_mod::HotlineModName};
+use crate::hotline_mod::HotlineModName;
 
 use self::{
     current_mod_config::{CurrentMod, CurrentModError},
@@ -22,7 +21,6 @@ impl Configs {
         let current_mod = CurrentMod::build()
             .inspect_err(Self::on_current_mod_error)
             .ok();
-        print_mod_name(current_mod.as_ref());
 
         Ok(Configs {
             paths_config,
@@ -70,29 +68,8 @@ impl Configs {
     fn on_current_mod_error(err: &CurrentModError) {
         if let CurrentModError::IoError(error) = err {
             println!(
-                "Something wrong happened while trying to read the current mod: {}",
-                error
+                "Something wrong happened while trying to read the current mod: {error}"
             );
         }
     }
-}
-
-fn print_mod_name(current_mod: Option<&CurrentMod>) {
-    let mod_name = current_mod
-        .map(|current_mod| current_mod.name().formatted_name())
-        .map_or("Uncertain...", AsRef::as_ref);
-
-    println!("You are currently using: {mod_name}");
-}
-
-pub fn get_path(prompt: &str, path_name: &str) -> PathBuf {
-    let path = PathBuf::from(get_user_input(prompt));
-    let result = metadata(&path).map(|_| path);
-    result.unwrap_or_else(|_| {
-        println!(
-            "Could not validate your {} path, please write it again.",
-            path_name
-        );
-        get_path(prompt, path_name)
-    })
 }

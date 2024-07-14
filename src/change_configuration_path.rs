@@ -17,12 +17,13 @@ pub fn get_desired_path_to_change() -> InquireResult<ConfigurationPath<WithPath>
 fn validate_path(
     configuration_path: ConfigurationPath<WithoutPath>,
 ) -> InquireResult<ConfigurationPath<WithPath>> {
-    let path = get_user_input(&format!("The path for {}", configuration_path.name()));
-    match std::fs::metadata(&path) {
-        Ok(_) => Ok(configuration_path.with_path(PathBuf::from(path))),
-        Err(_) => {
-            println!("Couldn't validate this path: {}. Please try again.", &path);
-            validate_path(configuration_path)
-        }
+    let path = get_user_input(
+        &format!("The path for your {} folder:", configuration_path.name())
+    );
+    if std::fs::metadata(&path).is_ok() {
+        Ok(configuration_path.with_path(PathBuf::from(path)))
+    } else {
+        println!("Couldn't validate this path: {}. Please try again.", &path);
+        validate_path(configuration_path)
     }
 }

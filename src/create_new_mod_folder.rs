@@ -41,7 +41,7 @@ pub enum CreateNewModFolderError {
 }
 
 fn get_new_mod_name(all_mods: &AllMods) -> InquireResult<HotlineModName> {
-    match Text::new(&format!("{}\n", GET_NEW_MOD_NAME_PROMPT)).prompt() {
+    match Text::new(&format!("{GET_NEW_MOD_NAME_PROMPT}\n")).prompt() {
         Ok(new_name) if is_new_mod_name_valid(&new_name, all_mods) => {
             Ok(HotlineModName::from_directory(new_name))
         }

@@ -38,7 +38,7 @@ impl HotlineModManager {
             .map(DefaultHotlineMod);
 
         if default_game.is_none() {
-            println!("{}", ORIGINAL_GAME_SETTINGS_NOT_FOUND_WARNING);
+            println!("{ORIGINAL_GAME_SETTINGS_NOT_FOUND_WARNING}");
         }
 
         Ok(HotlineModManager {
@@ -53,19 +53,20 @@ impl HotlineModManager {
             let action = self.get_action();
             if let Err(error) = match action {
                 Action::ChangeMod => self.change_mod(),
-                Action::RunGame => self.run_hotline_miami_2(),
+                Action::RunGame => Self::run_hotline_miami_2(),
                 Action::UseDefaultSettings => self.use_default_settings(),
                 Action::CreateNewModFolder => self.create_new_mod_folder(),
                 Action::ChangeConfigurationPath => self.change_configuration_path(),
                 Action::ClearConfiguration => self.clear_configuration(),
                 Action::Exit => exit(),
             } {
-                println!("{}", error);
+                println!("{error}");
             }
         }
     }
 
     fn get_action(&self) -> Action {
+        self.print_mod_name();
         let prompt =
             Select::new("What do you want to do?", Action::VARIANTS.iter().collect()).prompt();
 
@@ -96,13 +97,14 @@ impl HotlineModManager {
 
         let music = desired_mod.music().or(default_game_music);
 
-        match music {
-            Some(music) => replace_music(
+        if let Some(music) = music {
+            replace_music(
                 self.configs.paths_config().game_path(),
                 music,
                 desired_mod.name(),
-            )?,
-            None => println!("{}", ORIGINAL_GAME_SETTINGS_NOT_FOUND_WARNING),
+            )?;
+        } else {
+            println!("{ORIGINAL_GAME_SETTINGS_NOT_FOUND_WARNING}");
         };
 
         replace_mods(
@@ -122,21 +124,22 @@ impl HotlineModManager {
             .and_then(|default_mod| default_mod.music())
     }
 
-    fn run_hotline_miami_2(&self) -> anyhow::Result<()> {
-        match crate::run_hotline_miami_2() {
-            Ok(_) => std::process::exit(0),
-            Err(err) => Err(anyhow!(err)),
+    fn run_hotline_miami_2() -> anyhow::Result<()> {
+        if let Err(err) = crate::run_hotline_miami_2() {
+            Err(anyhow!(err))
+        } else {
+            std::process::exit(0)
         }
     }
 
     fn use_default_settings(&mut self) -> anyhow::Result<()> {
         match &self.default_game {
             None => {
-                println!("{}", ORIGINAL_GAME_SETTINGS_NOT_FOUND_WARNING);
+                println!("{ORIGINAL_GAME_SETTINGS_NOT_FOUND_WARNING}");
                 Ok(())
             }
             Some(DefaultHotlineMod(hm_mod)) if hm_mod.music().is_none() => {
-                println!("{}", ORIGINAL_GAME_SETTINGS_NOT_FOUND_WARNING);
+                println!("{ORIGINAL_GAME_SETTINGS_NOT_FOUND_WARNING}");
                 Ok(())
             }
             Some(DefaultHotlineMod(hm_mod)) => {
@@ -196,13 +199,22 @@ impl HotlineModManager {
 
         Ok(())
     }
+    
+    fn print_mod_name(&self) {
+        let mod_name = self.configs.current_mod()
+            .map(|current_mod| current_mod.name().formatted_name())
+            .map_or("Uncertain...", AsRef::as_ref);
+    
+        println!("You are currently using: {mod_name}");
+    }
 }
+
 
 pub struct DefaultHotlineMod(HotlineMod);
 
 impl DefaultHotlineMod {
     pub fn hm_mod(&self) -> &HotlineMod {
-        self.deref()
+        self
     }
 }
 

@@ -120,8 +120,7 @@ fn get_music(mod_path: &Path) -> Option<Music> {
     mod_path
         .join(MUSIC_FOLDER_NAME)
         .read_dir()
-        .map(read_dir_to_path)
-        .unwrap_or_else(|_| Rc::new([]))
+        .map_or_else(|_| Rc::new([]), read_dir_to_path)
         .first()
         .filter(|path| is_valid_music_file(path))
         .map(ToOwned::to_owned)
@@ -132,8 +131,7 @@ fn get_mods(mod_path: &Path) -> AssociatedMods {
     let associated_mods = mod_path
         .join(MODS_FOLDER_NAME)
         .read_dir()
-        .map(read_dir_to_path)
-        .unwrap_or_else(|_| Rc::new([]));
+        .map_or_else(|_| Rc::new([]), read_dir_to_path);
 
     AssociatedMods(associated_mods)
 }
