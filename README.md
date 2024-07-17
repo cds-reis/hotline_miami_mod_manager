@@ -1,5 +1,7 @@
 # Hotline Miami Mod Manager
 
+![banner](assets/docs/banner.png)
+
 Hotline Miami Mod Manager is a user-friendly application designed to streamline the management of your Hotline Miami 2 mods, providing a quick and easy way to organize and switch between different mods of the game.
 
 ## Table of contents
@@ -9,7 +11,7 @@ Hotline Miami Mod Manager is a user-friendly application designed to streamline 
    - [Organizing your mods files](#organizing-your-mods-files)
    - [Creating a default mod](#creating-a-default-mod)
 2. [How to use](#how-to-use)
-   - [Changing mods](#changing-mods)
+   - [Change the current mod](#change-the-current-mod)
    - [Changing a path](#changing-a-path)
    - [Clearing all configuration](#clearing-all-configuration)
 
@@ -102,9 +104,21 @@ For that, you should create a folder called `hotline_miami_2`, having the `music
 
 After all the preparations are done, running the program will prompt you with all the options you can make.
 
-### Changing mods
+### Change the current mod
 
 This action will show you all the mods you have in your folder, prompting you to select the one you desire to use. After selecting, the program will copy all the files to the desired paths, and now you can play with the mod you want!
+
+### Run Hotline Miami 2
+
+Runs Hotline Miami 2 if you have the game on Steam and are on Windows.
+
+### Use the default setting's
+
+Uses the default mode of the game, with the default music and no mods. Read [Creating a default mod](#creating-a-default-mod) to see more.
+
+### Create a new mod folder structure
+
+Creates a new folder structure for a mod you want to add.
 
 ### Changing a path
 
