@@ -1,32 +1,39 @@
 use std::{
-    fs::{create_dir, read_dir, remove_dir_all, DirEntry},
-    io,
+    fmt::Display,
+    fs::{read_dir, DirEntry},
+    iter::Iterator,
     path::Path,
 };
 
-use inquire::Text;
-
-use crate::{configs::{save_configs_to_file, Configs}, hotline_mod::HotlineMod};
+use inquire::{error::InquireResult, InquireError, Select, Text};
 
 pub fn get_user_input(prompt: &str) -> String {
-    return Text::new(&format!("{prompt}\n"))
+    Text::new(&format!("{prompt}\n"))
         .prompt()
-        .unwrap_or_else(|_| {
-            println!("We couldn't handle your input. Please try again.");
-            get_user_input(prompt)
-        });
+        .unwrap_or_else(|err| {
+            if let InquireError::OperationInterrupted | InquireError::OperationCanceled = err {
+                panic!("user exited the program.")
+            } else {
+                println!("We couldn't handle your input. Please try again.");
+                get_user_input(prompt)
+            }
+        })
 }
 
-pub fn get_dirs(path: &Path) -> Result<Vec<DirEntry>, std::io::Error> {
+pub fn prompt_user_select<T: Display>(
+    message: impl AsRef<str>,
+    options: Vec<T>,
+) -> InquireResult<T> {
+    Select::new(message.as_ref(), options)
+        .with_page_size(20)
+        .with_help_message("Press ESC to go back.")
+        .prompt()
+}
+
+pub fn get_dirs(path: &Path) -> std::io::Result<Vec<DirEntry>> {
     read_dir(path)
         .map(|dir| dir.filter_map(Result::ok))
-        .map(|dir| dir.collect())
-}
-
-pub fn reset_folder(path: &Path) -> io::Result<()> {
-    remove_dir_all(path)?;
-    create_dir(path)?;
-    Ok(())
+        .map(Iterator::collect)
 }
 
 pub fn capitalize(value: &str) -> String {
@@ -37,14 +44,6 @@ pub fn capitalize(value: &str) -> String {
     }
 
     result
-}
-
-pub fn flush_configs(configs: Configs, current_mod: HotlineMod) {
-    let new_config = Configs {
-        current_mod: Some(current_mod.name),
-        paths_config: configs.paths_config,
-    };
-    save_configs_to_file(&new_config);
 }
 
 pub fn work_in_progress() {

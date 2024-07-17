@@ -1,15 +1,19 @@
-use std::process::{exit, Command};
+use std::{io, process::Command};
 
-pub fn run_hotline_miami_2() -> ! {
+use thiserror::Error;
+
+pub fn run_hotline_miami_2() -> Result<(), RunHotlineMiamiError> {
     let output = build_command().output();
     match output {
-        Ok(_) => exit(0),
-        Err(err) => {
-            eprintln!("Something went wrong while opening the game.");
-            eprintln!("Error: {:?}", err);
-            exit(123)
-        }
+        Ok(_) => Ok(()),
+        Err(err) => Err(RunHotlineMiamiError::from(err)),
     }
+}
+
+#[derive(Error, Debug)]
+pub enum RunHotlineMiamiError {
+    #[error("Something went wrong while opening the game. Error: {0}")]
+    IoError(#[from] io::Error),
 }
 
 fn build_command() -> Command {
