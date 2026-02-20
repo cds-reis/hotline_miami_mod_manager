@@ -199,16 +199,17 @@ impl HotlineModManager {
 
         Ok(())
     }
-    
+
     fn print_mod_name(&self) {
-        let mod_name = self.configs.current_mod()
+        let mod_name = self
+            .configs
+            .current_mod()
             .map(|current_mod| current_mod.name().formatted_name())
             .map_or("Uncertain...", AsRef::as_ref);
-    
+
         println!("You are currently using: {mod_name}");
     }
 }
-
 
 pub struct DefaultHotlineMod(HotlineMod);
 

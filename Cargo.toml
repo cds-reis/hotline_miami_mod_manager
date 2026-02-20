@@ -13,4 +13,6 @@ inquire = "0.7.5"
 thiserror = "1.0.60"
 
 [build-dependencies]
+
+[target.'cfg(windows)'.build-dependencies]
 winres = "0.1.12"
