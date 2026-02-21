@@ -63,16 +63,12 @@ impl CurrentMod {
     }
 
     fn get_file_contents() -> io::Result<HashMap<String, PathBuf>> {
-        let contents = fs::read_to_string(MODS_CONFIG_FILE_NAME)?;
-
-        let contents = contents
+        Ok(fs::read_to_string(MODS_CONFIG_FILE_NAME)?
             .lines()
             .map(str::trim)
             .filter_map(|line| line.split_once(':'))
             .map(|(key, value)| (key.to_string(), PathBuf::from(value)))
-            .collect::<HashMap<_, _>>();
-
-        Ok(contents)
+            .collect())
     }
 
     fn create_file() -> io::Result<HashMap<String, PathBuf>> {

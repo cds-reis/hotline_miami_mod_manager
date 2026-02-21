@@ -48,9 +48,10 @@ impl HotlineModManager {
         })
     }
 
-    pub fn run(&mut self) -> anyhow::Result<()> {
+    pub fn run(&mut self) {
         loop {
             let action = self.get_action();
+
             if let Err(error) = match action {
                 Action::ChangeMod => self.change_mod(),
                 Action::RunGame => Self::run_hotline_miami_2(),
@@ -90,7 +91,7 @@ impl HotlineModManager {
             Err(ChangeCurrentModError::UserExitedApplication) => {
                 panic!("User requested to leave the application.")
             }
-            Err(ChangeCurrentModError::InquireError(err)) => return Err(anyhow!(err)),
+            Err(ChangeCurrentModError::InquireError(err)) => bail!(err),
         };
 
         let default_game_music = self.default_game_music();
@@ -105,7 +106,7 @@ impl HotlineModManager {
             )?;
         } else {
             println!("{ORIGINAL_GAME_SETTINGS_NOT_FOUND_WARNING}");
-        };
+        }
 
         replace_mods(
             self.configs.paths_config().mods_path(),
@@ -195,7 +196,7 @@ impl HotlineModManager {
             Err(InquireError::OperationCanceled) => return Ok(()),
             Err(InquireError::OperationInterrupted) => panic!("User requested to quit application"),
             Err(err) => bail!(err),
-        };
+        }
 
         Ok(())
     }

@@ -3,7 +3,6 @@
 #![allow(clippy::missing_errors_doc)]
 #![allow(clippy::must_use_candidate)]
 #![allow(clippy::return_self_not_must_use)]
-#![allow(clippy::module_name_repetitions)]
 #![allow(clippy::missing_panics_doc)]
 
 use manager::HotlineModManager;
@@ -21,10 +20,17 @@ pub mod replace_mod;
 pub mod run_game;
 pub mod select_mod;
 
-fn main() -> anyhow::Result<()> {
+fn main() {
     let manager = HotlineModManager::build();
+
     match manager {
-        Ok(mut manager) => manager.run(),
-        Err(err) => Err(err),
+        Ok(mut manager) => {
+            manager.run();
+            std::process::exit(0);
+        }
+        Err(err) => {
+            println!("{err}");
+            std::process::exit(1);
+        }
     }
 }

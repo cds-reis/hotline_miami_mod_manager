@@ -13,9 +13,9 @@ use crate::functions::get_user_input;
 
 #[derive(Debug)]
 pub struct PathsConfig {
-    game_path: GamePath,
-    mods_path: ModsPath,
-    mods_group_path: ModsGroupPath,
+    game: GamePath,
+    mods: ModsPath,
+    mods_group: ModsGroupPath,
 }
 
 impl Display for PathsConfig {
@@ -23,9 +23,9 @@ impl Display for PathsConfig {
         write!(
             f,
             "PathsConfig(game_path:{},mods_path:{},mods_group_path:{})",
-            self.game_path.0.to_string_lossy(),
-            self.mods_path.0.to_string_lossy(),
-            self.mods_group_path.0.to_string_lossy()
+            self.game.0.to_string_lossy(),
+            self.mods.0.to_string_lossy(),
+            self.mods_group.0.to_string_lossy()
         )
     }
 }
@@ -46,22 +46,22 @@ impl PathsConfig {
         let game_path = entries
             .remove(GamePath::key())
             .map(GamePath::new)
-            .ok_or_else(|| PathsConfigError::GamePathNotFound)?;
+            .ok_or(PathsConfigError::GamePathNotFound)?;
 
         let mods_path = entries
             .remove(ModsPath::key())
             .map(ModsPath::new)
-            .ok_or_else(|| PathsConfigError::ModsPathNotFound)?;
+            .ok_or(PathsConfigError::ModsPathNotFound)?;
 
         let mods_group_path = entries
             .remove(ModsGroupPath::key())
             .map(ModsGroupPath::new)
-            .ok_or_else(|| PathsConfigError::ModsGroupPathNotFound)?;
+            .ok_or(PathsConfigError::ModsGroupPathNotFound)?;
 
         Ok(PathsConfig {
-            game_path,
-            mods_path,
-            mods_group_path,
+            game: game_path,
+            mods: mods_path,
+            mods_group: mods_group_path,
         })
     }
 
@@ -71,44 +71,47 @@ impl PathsConfig {
 
     pub fn save(&self) -> Result<(), PathsConfigError> {
         let entries = [
-            self.game_path.as_file_entry(),
-            self.mods_path.as_file_entry(),
-            self.mods_group_path.as_file_entry(),
+            self.game.as_file_entry(),
+            self.mods.as_file_entry(),
+            self.mods_group.as_file_entry(),
         ];
 
         Self::flush_entries(&entries)
     }
 
     pub fn game_path(&self) -> &GamePath {
-        &self.game_path
+        &self.game
     }
 
     pub fn mods_path(&self) -> &ModsPath {
-        &self.mods_path
+        &self.mods
     }
 
     pub fn mods_group_path(&self) -> &ModsGroupPath {
-        &self.mods_group_path
+        &self.mods_group
     }
 
     pub fn set_game_path(&mut self, game_path: GamePath) {
-        self.game_path = game_path;
+        self.game = game_path;
     }
 
     pub fn set_mods_path(&mut self, mods_path: ModsPath) {
-        self.mods_path = mods_path;
+        self.mods = mods_path;
     }
 
     pub fn set_mods_group_path(&mut self, mods_group_path: ModsGroupPath) {
-        self.mods_group_path = mods_group_path;
+        self.mods_group = mods_group_path;
     }
 
     pub fn with_mods_path(self, mods_path: ModsPath) -> Self {
-        PathsConfig { mods_path, ..self }
+        PathsConfig {
+            mods: mods_path,
+            ..self
+        }
     }
     pub fn with_mods_group_path(self, mods_group_path: ModsGroupPath) -> Self {
         PathsConfig {
-            mods_group_path,
+            mods_group: mods_group_path,
             ..self
         }
     }
@@ -141,9 +144,9 @@ impl PathsConfig {
             .map_err(PathsConfigError::FileWritingError)?;
 
         Ok(PathsConfig {
-            game_path,
-            mods_path,
-            mods_group_path,
+            game: game_path,
+            mods: mods_path,
+            mods_group: mods_group_path,
         })
     }
 
@@ -202,7 +205,7 @@ pub trait ProgramPath {
     fn key() -> &'static str;
     fn name() -> &'static str;
     fn prompt() -> &'static str;
-    fn as_file_entry(&self) -> PathFileEntry {
+    fn as_file_entry(&self) -> PathFileEntry<'_> {
         PathFileEntry {
             key: Self::key(),
             path: self.path(),
@@ -215,7 +218,7 @@ pub struct PathFileEntry<'a> {
     path: &'a Path,
 }
 
-impl<'a> PathFileEntry<'a> {
+impl PathFileEntry<'_> {
     fn format(&self) -> String {
         format!("{}:{}\n", self.key, self.path.display())
     }

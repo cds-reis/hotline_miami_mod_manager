@@ -1,4 +1,4 @@
-use std::{ffi::OsStr, fmt, fs::ReadDir, path::Path, rc::Rc};
+use std::{fmt, fs::ReadDir, path::Path, rc::Rc};
 
 use crate::functions::capitalize;
 
@@ -144,7 +144,6 @@ fn read_dir_to_path(read_dir: ReadDir) -> Rc<[Rc<Path>]> {
 }
 
 fn is_valid_music_file(path: &Path) -> bool {
-    path.extension().map_or(false, |extension| {
-        OsStr::new(VALID_MUSIC_EXTENSION) == extension
-    })
+    path.extension()
+        .is_some_and(|extension| extension.eq_ignore_ascii_case(VALID_MUSIC_EXTENSION))
 }
